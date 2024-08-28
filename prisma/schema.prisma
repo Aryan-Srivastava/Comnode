@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id         Int            @id @default(autoincrement())
+  username        String         @unique
+  email           String         @unique
+  password        String
+  dob             DateTime
+  bio             String?
+  profile_picture String?
+  website_url     String?
+  social_links    Json?
+  role_id         Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  role            Role           @relation(fields: [role_id], references: [role_id])
+  blogs           Blog[]
+  comments        Comment[]
+  blogLikes       Like[]
+  commentLikes    CommentLike[]
+  commentReplies  CommentReply[]
+  bookmarks       Bookmark[]
+  flags           Flag[]
+  drafts          Draft[]
+  followers       Follower[]     @relation("Follower")
+  following       Follower[]     @relation("Following")
+  notifications   Notification[]
+
+  Blog Blog[] @relation("Reviewer")
+}
+
+model Role {
+  role_id   Int    @id @default(autoincrement())
+  role_name String @unique
+  users     User[]
+}
+
+model Blog {
+  blog_id         Int            @id @default(autoincrement())
+  title           String
+  content         String
+  author_id       Int
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+  is_flagged      Boolean        @default(false)
+  is_published    Boolean        @default(false)
+  reviewed_by     Int?
+  reviewed_at     DateTime?
+  cover_image_url String?
+  tags            Json?
+  author          User           @relation(fields: [author_id], references: [user_id])
+  reviewer        User?          @relation("Reviewer", fields: [reviewed_by], references: [user_id])
+  comments        Comment[]
+  likes           Like[]
+  bookmarks       Bookmark[]
+  categories      PostCategory[]
+
+  PostTag PostTag[]
+}
+
+model Comment {
+  comment_id       Int            @id @default(autoincrement())
+  blog_id          Int
+  user_id          Int
+  content          String
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  is_inappropriate Boolean        @default(false)
+  blog             Blog           @relation(fields: [blog_id], references: [blog_id])
+  user             User           @relation(fields: [user_id], references: [user_id])
+  commentLikes     CommentLike[]
+  commentReplies   CommentReply[]
+}
+
+model Like {
+  like_id    Int      @id @default(autoincrement())
+  blog_id    Int
+  user_id    Int
+  created_at DateTime @default(now())
+  blog       Blog     @relation(fields: [blog_id], references: [blog_id])
+  user       User     @relation(fields: [user_id], references: [user_id])
+}
+
+model CommentLike {
+  like_id    Int      @id @default(autoincrement())
+  comment_id Int
+  user_id    Int
+  created_at DateTime @default(now())
+  comment    Comment  @relation(fields: [comment_id], references: [comment_id])
+  user       User     @relation(fields: [user_id], references: [user_id])
+}
+
+model CommentReply {
+  reply_id   Int      @id @default(autoincrement())
+  comment_id Int
+  user_id    Int
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  comment    Comment  @relation(fields: [comment_id], references: [comment_id])
+  user       User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Bookmark {
+  bookmark_id Int      @id @default(autoincrement())
+  blog_id     Int
+  user_id     Int
+  created_at  DateTime @default(now())
+  blog        Blog     @relation(fields: [blog_id], references: [blog_id])
+  user        User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Flag {
+  flag_id     Int      @id @default(autoincrement())
+  entity_id   Int
+  entity_type String   @map("entity_type") // Check constraint in SQL
+  flagged_by  Int
+  reason      String
+  created_at  DateTime @default(now())
+  user        User     @relation(fields: [flagged_by], references: [user_id])
+}
+
+model Draft {
+  draft_id   Int      @id @default(autoincrement())
+  title      String
+  content    String
+  author_id  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  author     User     @relation(fields: [author_id], references: [user_id])
+}
+
+model Follower {
+  follower_id       Int      @id @default(autoincrement())
+  user_id           Int
+  following_user_id Int
+  created_at        DateTime @default(now())
+  user              User     @relation("Follower", fields: [user_id], references: [user_id])
+  following_user    User     @relation("Following", fields: [following_user_id], references: [user_id])
+}
+
+model Notification {
+  notification_id Int      @id @default(autoincrement())
+  user_id         Int
+  type            String
+  message         String
+  read_status     Boolean  @default(false)
+  created_at      DateTime @default(now())
+  user            User     @relation(fields: [user_id], references: [user_id])
+}
+
+model Category {
+  category_id    Int            @id @default(autoincrement())
+  name           String         @unique
+  description    String?
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  postCategories PostCategory[]
+}
+
+model PostCategory {
+  post_category_id Int      @id @default(autoincrement())
+  blog_id          Int
+  category_id      Int
+  blog             Blog     @relation(fields: [blog_id], references: [blog_id])
+  category         Category @relation(fields: [category_id], references: [category_id])
+}
+
+model Tag {
+  tag_id      Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  postTags    PostTag[]
+}
+
+model PostTag {
+  post_tag_id Int  @id @default(autoincrement())
+  blog_id     Int
+  tag_id      Int
+  blog        Blog @relation(fields: [blog_id], references: [blog_id])
+  tag         Tag  @relation(fields: [tag_id], references: [tag_id])
+}
