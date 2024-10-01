@@ -17,14 +17,14 @@ model User {
   user_id         Int            @id @default(autoincrement())
   username        String         @unique
   email           String         @unique
-  password        String
+  password        String?        // Optional for OAuth users
   dob             DateTime
   bio             String?
   profile_picture String?
   website_url     String?
   social_links    Json?
   role_id         Int
-  created_at      DateTime       @default(now())
+  created_at      DateTime       @default(now()) 
   updated_at      DateTime       @updatedAt
   role            Role           @relation(fields: [role_id], references: [role_id])
   blogs           Blog[]
@@ -38,14 +38,21 @@ model User {
   followers       Follower[]     @relation("Follower")
   following       Follower[]     @relation("Following")
   notifications   Notification[]
-
   Blog Blog[] @relation("Reviewer")
+  @@index([created_at])
 }
 
 model Role {
   role_id   Int    @id @default(autoincrement())
-  role_name String @unique
+  role_name RoleName @unique
   users     User[]
+}
+
+enum RoleName {
+  GENERAL_USER
+  EDITOR
+  MANAGER
+  SUPER_ADMIN
 }
 
 model Blog {
@@ -53,7 +60,7 @@ model Blog {
   title           String
   content         String
   author_id       Int
-  created_at      DateTime       @default(now())
+  created_at      DateTime       @default(now()) 
   updated_at      DateTime       @updatedAt
   is_flagged      Boolean        @default(false)
   is_published    Boolean        @default(false)
@@ -69,6 +76,7 @@ model Blog {
   categories      PostCategory[]
 
   PostTag PostTag[]
+  @@index([created_at])
 }
 
 model Comment {

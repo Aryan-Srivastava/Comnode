@@ -7,14 +7,10 @@ async function main() {
   await prisma.role.createMany({
     data: [
       { role_name: 'Admin' },
-      { role_name: 'Moderator' },
       { role_name: 'User' },
       { role_name: 'Editor' },
-      { role_name: 'Contributor' },
-      { role_name: 'Subscriber' },
       { role_name: 'Guest' },
       { role_name: 'SuperAdmin' },
-      { role_name: 'Author' },
       { role_name: 'Manager' },
     ],
   });

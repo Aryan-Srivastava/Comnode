@@ -1,5 +1,7 @@
+
 import { fontFamily } from 'tailwindcss/defaultTheme';
 import type { Config } from "tailwindcss"
+
 
 const config = {
   darkMode: ["class"],
@@ -77,6 +79,9 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
+  },
+  compilerOptions: {
+    types: ["prisma"],
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config
